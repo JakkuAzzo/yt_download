@@ -6,9 +6,10 @@ A simple and elegant GitHub Pages website for downloading videos from YouTube, F
 
 - **Multi-Platform Support**: Download videos from YouTube, Facebook, and Twitter/X
 - **User-Friendly Interface**: Clean and modern design with easy-to-use controls
-- **Multiple Download Options**: Choose from various third-party download services
+- **Direct Download Links**: Get a single direct download link using free Cobalt API
 - **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
 - **No Installation Required**: Pure client-side web application
+- **No API Key Required**: Uses free, publicly available API
 
 ## 🚀 Live Demo
 
@@ -19,8 +20,8 @@ Visit the live website: [https://jakkuazzo.github.io/yt_download/](https://jakku
 1. Copy the video URL from YouTube, Facebook, or Twitter
 2. Paste the URL into the input field on the website
 3. Click the "Download Video" button
-4. Choose your preferred download service from the options provided
-5. Follow the instructions on the selected service to download the video
+4. Wait for the video to be processed via the API
+5. Click the direct download link to save the video to your device
 
 ## 🎯 Supported Platforms
 
@@ -46,8 +47,9 @@ This is a static website built with:
 - CSS3 with modern features (Grid, Flexbox, Animations)
 - Vanilla JavaScript (no frameworks required)
 - Responsive design principles
+- Cobalt.tools API for video processing and download link generation
 
-The website acts as a convenient hub that directs users to trusted third-party video download services, as direct video downloading from client-side JavaScript has limitations due to CORS policies and platform restrictions.
+The website uses the free Cobalt API (https://api.cobalt.tools) to process video URLs and generate direct download links, eliminating the need for users to navigate to third-party websites.
 
 ## 📝 Local Development
 
@@ -69,6 +71,10 @@ To run this project locally:
    ```
 
 3. Navigate to `http://localhost:8000` in your browser
+
+### CORS Considerations
+
+When testing locally, you may encounter CORS (Cross-Origin Resource Sharing) restrictions from the Cobalt API. This is normal browser security behavior. The application works correctly when deployed to GitHub Pages or other public hosting services where the API's CORS policy allows requests.
 
 ## ⚠️ Important Notes
 
