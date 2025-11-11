@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader - YouTube, Facebook, Twitter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Video Downloader</h1>
+            <p class="subtitle">Download videos from YouTube, Facebook, and Twitter</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <input 
+                    type="text" 
+                    id="videoUrl" 
+                    placeholder="Paste your YouTube, Facebook, or Twitter video URL here..."
+                    aria-label="Video URL input"
+                >
+                <button id="downloadBtn" onclick="handleDownload()">
+                    Download Video
+                </button>
+            </div>
+
+            <div id="message" class="message hidden"></div>
+
+            <div id="downloadOptions" class="download-options hidden"></div>
+
+            <section class="info-section">
+                <h2>📌 Supported Platforms</h2>
+                <div class="platforms">
+                    <div class="platform">
+                        <h3>🎥 YouTube</h3>
+                        <p>Download videos from YouTube in various qualities</p>
+                        <p class="example">Example: https://www.youtube.com/watch?v=...</p>
+                    </div>
+                    <div class="platform">
+                        <h3>📘 Facebook</h3>
+                        <p>Download videos from Facebook posts and pages</p>
+                        <p class="example">Example: https://www.facebook.com/watch/...</p>
+                    </div>
+                    <div class="platform">
+                        <h3>🐦 Twitter</h3>
+                        <p>Download videos from Twitter/X posts</p>
+                        <p class="example">Example: https://twitter.com/.../status/...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="how-to-section">
+                <h2>🚀 How to Use</h2>
+                <ol>
+                    <li>Copy the video URL from YouTube, Facebook, or Twitter</li>
+                    <li>Paste the URL in the input field above</li>
+                    <li>Click the "Download Video" button</li>
+                    <li>Choose your preferred quality and format</li>
+                    <li>Click the download link to save the video</li>
+                </ol>
+            </section>
+
+            <section class="disclaimer">
+                <h3>⚠️ Important Notes</h3>
+                <ul>
+                    <li>Make sure you have the right to download and use the video content</li>
+                    <li>Respect copyright and intellectual property rights</li>
+                    <li>This tool is for personal use only</li>
+                    <li>Some videos may be restricted or unavailable for download</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>Made with ❤️ for easy video downloading</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
