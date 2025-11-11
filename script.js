@@ -17,12 +17,12 @@ const PLATFORM_PATTERNS = {
     ]
 };
 
-// API endpoints (using public third-party services)
+// API configuration
+// Using Cobalt API for video downloads (free, no API key required)
+// Note: If you encounter CORS issues when testing locally, the API should work
+// when deployed to a public server like GitHub Pages
 const API_ENDPOINTS = {
-    youtube: 'https://www.y2mate.com/mates/analyzeV2/ajax',
-    // Note: These are example endpoints. In production, you'd need to use actual working APIs
-    facebook: 'https://www.getfvid.com/downloader',
-    twitter: 'https://twitsave.com/info'
+    cobalt: 'https://api.cobalt.tools/api/json'
 };
 
 /**
@@ -70,87 +70,83 @@ function hideMessage() {
 }
 
 /**
- * Show download options
+ * Fetch video download URL from Cobalt API
  */
-function showDownloadOptions(platform, url) {
+async function fetchDownloadUrl(url) {
+    try {
+        const response = await fetch(API_ENDPOINTS.cobalt, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                vCodec: 'h264',
+                vQuality: '720',
+                aFormat: 'mp3',
+                filenamePattern: 'classic',
+                isAudioOnly: false
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching download URL:', error);
+        throw error;
+    }
+}
+
+/**
+ * Show download options with direct download link
+ */
+function showDownloadOptions(downloadData, platform) {
     const optionsDiv = document.getElementById('downloadOptions');
     
     let content = `
-        <h3>📥 Download Options for ${platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
-        <p style="margin-bottom: 15px; color: #666;">Click a link below to download the video:</p>
+        <h3>📥 Download Ready</h3>
+        <p style="margin-bottom: 15px; color: #666;">Your video is ready to download:</p>
     `;
     
-    if (platform === 'youtube') {
-        const videoId = extractYouTubeId(url);
+    // Handle different response formats from Cobalt API
+    if (downloadData.status === 'redirect' || downloadData.status === 'stream') {
+        const downloadUrl = downloadData.url;
         content += `
             <div class="quality-option">
                 <div class="quality-info">
-                    <div class="quality-label">🎬 Open in Y2Mate</div>
-                    <div class="quality-size">Download in various qualities</div>
+                    <div class="quality-label">🎬 ${platform.charAt(0).toUpperCase() + platform.slice(1)} Video</div>
+                    <div class="quality-size">Click to download</div>
                 </div>
-                <a href="https://www.y2mate.com/youtube/${videoId}" target="_blank" class="download-link">Open</a>
-            </div>
-            <div class="quality-option">
-                <div class="quality-info">
-                    <div class="quality-label">🎬 Open in SaveFrom.net</div>
-                    <div class="quality-size">Alternative downloader</div>
-                </div>
-                <a href="https://en.savefrom.net/#url=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
-            </div>
-            <div class="quality-option">
-                <div class="quality-info">
-                    <div class="quality-label">🎬 Open in YT1s</div>
-                    <div class="quality-size">Fast and simple</div>
-                </div>
-                <a href="https://yt1s.com/en/youtube-to-mp4?q=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
+                <a href="${downloadUrl}" target="_blank" class="download-link" download>Download</a>
             </div>
         `;
-    } else if (platform === 'facebook') {
+    } else if (downloadData.status === 'picker') {
+        // Multiple files available (e.g., Twitter with images)
+        content += `<p style="margin-bottom: 10px; color: #666;">Multiple media files available:</p>`;
+        downloadData.picker.forEach((item, index) => {
+            content += `
+                <div class="quality-option">
+                    <div class="quality-info">
+                        <div class="quality-label">🎬 Media ${index + 1}</div>
+                        <div class="quality-size">${item.type || 'Video'}</div>
+                    </div>
+                    <a href="${item.url}" target="_blank" class="download-link" download>Download</a>
+                </div>
+            `;
+        });
+    } else {
+        // Fallback for unexpected response
         content += `
             <div class="quality-option">
                 <div class="quality-info">
-                    <div class="quality-label">📘 Open in GetFVid</div>
-                    <div class="quality-size">Download Facebook videos</div>
+                    <div class="quality-label">⚠️ Download Available</div>
+                    <div class="quality-size">Response format may vary</div>
                 </div>
-                <a href="https://www.getfvid.com/downloader?url=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
-            </div>
-            <div class="quality-option">
-                <div class="quality-info">
-                    <div class="quality-label">📘 Open in FBDown</div>
-                    <div class="quality-size">Alternative downloader</div>
-                </div>
-                <a href="https://fbdownloader.net/?url=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
-            </div>
-            <div class="quality-option">
-                <div class="quality-info">
-                    <div class="quality-label">📘 Open in SnapSave</div>
-                    <div class="quality-size">Fast Facebook downloader</div>
-                </div>
-                <a href="https://snapsave.io/facebook-video-downloader?url=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
-            </div>
-        `;
-    } else if (platform === 'twitter') {
-        content += `
-            <div class="quality-option">
-                <div class="quality-info">
-                    <div class="quality-label">🐦 Open in Twitter Video Downloader</div>
-                    <div class="quality-size">Download Twitter/X videos</div>
-                </div>
-                <a href="https://twittervideodownloader.com/?url=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
-            </div>
-            <div class="quality-option">
-                <div class="quality-info">
-                    <div class="quality-label">🐦 Open in SaveTweet</div>
-                    <div class="quality-size">Alternative downloader</div>
-                </div>
-                <a href="https://www.savetweetvid.com/downloader?url=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
-            </div>
-            <div class="quality-option">
-                <div class="quality-info">
-                    <div class="quality-label">🐦 Open in TWDown</div>
-                    <div class="quality-size">Fast Twitter downloader</div>
-                </div>
-                <a href="https://twdown.net/?url=${encodeURIComponent(url)}" target="_blank" class="download-link">Open</a>
             </div>
         `;
     }
@@ -183,7 +179,7 @@ function hideDownloadOptions() {
 /**
  * Main download handler
  */
-function handleDownload() {
+async function handleDownload() {
     const urlInput = document.getElementById('videoUrl');
     const downloadBtn = document.getElementById('downloadBtn');
     const url = urlInput.value.trim();
@@ -215,20 +211,33 @@ function handleDownload() {
     downloadBtn.disabled = true;
     downloadBtn.innerHTML = 'Processing<span class="spinner"></span>';
     
-    // Simulate processing delay (in real implementation, this would be an API call)
-    setTimeout(() => {
+    try {
+        // Fetch download URL from API
+        const downloadData = await fetchDownloadUrl(url);
+        
         downloadBtn.disabled = false;
         downloadBtn.textContent = 'Download Video';
         
-        showMessage(`✅ ${platform.charAt(0).toUpperCase() + platform.slice(1)} video detected! Choose a download option below.`, 'success');
-        showDownloadOptions(platform, url);
+        if (downloadData.status === 'error') {
+            showMessage(`❌ Error: ${downloadData.text || 'Unable to process this video. Please try another URL.'}`, 'error');
+            return;
+        }
+        
+        showMessage(`✅ Video ready! Click the download button below.`, 'success');
+        showDownloadOptions(downloadData, platform);
         
         // Scroll to download options
         document.getElementById('downloadOptions').scrollIntoView({ 
             behavior: 'smooth', 
             block: 'nearest' 
         });
-    }, 800);
+    } catch (error) {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = 'Download Video';
+        
+        showMessage(`❌ Failed to process video: ${error.message}. Please try again.`, 'error');
+        console.error('Download error:', error);
+    }
 }
 
 /**
