@@ -1,0 +1,11 @@
+{
+  "name": "yt_download",
+  "version": "1.0.0",
+  "description": "Video downloader static site (tests using Playwright)",
+  "scripts": {
+    "test:e2e": "node tests/runPlaywrightTest.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.43.0"
+  }
+}

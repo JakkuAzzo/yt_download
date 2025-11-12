@@ -19,11 +19,29 @@ const PLATFORM_PATTERNS = {
 
 // API configuration
 // Using Cobalt API for video downloads (free, no API key required)
-// Note: If you encounter CORS issues when testing locally, the API should work
-// when deployed to a public server like GitHub Pages
+// By default the direct API endpoint is used. If you get CORS errors when
+// testing locally, set PROXY_URL to a server you control that forwards the
+// request to the Cobalt API (see server/proxy.js in this repo for an example).
 const API_ENDPOINTS = {
     cobalt: 'https://api.cobalt.tools/api/json'
 };
+
+// Optional: prepend this proxy URL to the API endpoint. If empty, the app will
+// call the API directly which may be blocked by CORS when run from some origins.
+// Example: const PROXY_URL = 'http://localhost:3000/proxy';
+// Auto-detect a common local dev setup: if you're loading the page from
+// `localhost` or `127.0.0.1` and you have the included proxy running, we'll
+// default to it so you don't have to edit this file manually.
+let PROXY_URL = '';
+try {
+    const host = (typeof location !== 'undefined' && location.hostname) || '';
+    if (host === 'localhost' || host === '127.0.0.1') {
+        PROXY_URL = 'http://localhost:3000/proxy';
+        console.info('Using local proxy at', PROXY_URL);
+    }
+} catch (e) {
+    // ignore (e.g., running in non-browser context)
+}
 
 /**
  * Detect which platform the URL belongs to
@@ -74,7 +92,11 @@ function hideMessage() {
  */
 async function fetchDownloadUrl(url) {
     try {
-        const response = await fetch(API_ENDPOINTS.cobalt, {
+        const endpoint = PROXY_URL ? `${PROXY_URL}` : API_ENDPOINTS.cobalt;
+
+        // Try to call the endpoint. If CORS preflight fails the browser will
+        // throw a TypeError. We detect this and surface a helpful message.
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -91,13 +113,30 @@ async function fetchDownloadUrl(url) {
         });
 
         if (!response.ok) {
+            // Non-2xx from server - bubble useful status
             throw new Error(`API request failed with status ${response.status}`);
         }
 
         const data = await response.json();
         return data;
     } catch (error) {
+        // Common failure modes:
+        // - TypeError: Failed to fetch (usually network or CORS/preflight failure)
+        // - HTTP error thrown above
         console.error('Error fetching download URL:', error);
+
+        // Enrich network/CORS errors with actionable guidance.
+        if (error instanceof TypeError || /Failed to fetch|NetworkError/i.test(String(error))) {
+            // Create a friendly Error with guidance for the UI to show
+            const guidance = `Network/CORS error when calling ${PROXY_URL || API_ENDPOINTS.cobalt}. ` +
+                `Browsers block cross-origin requests unless the server sets CORS headers. ` +
+                `To test locally either: (1) run the included local proxy at http://localhost:3000 (see README), ` +
+                `(2) deploy this site to a public host (GitHub Pages) or (3) have the API enable CORS for your origin.`;
+            const wrapped = new Error(guidance + ` Original: ${error.message || error}`);
+            wrapped.cause = error;
+            throw wrapped;
+        }
+
         throw error;
     }
 }

@@ -76,6 +76,24 @@ To run this project locally:
 
 When testing locally, you may encounter CORS (Cross-Origin Resource Sharing) restrictions from the Cobalt API. This is normal browser security behavior. The application works correctly when deployed to GitHub Pages or other public hosting services where the API's CORS policy allows requests.
 
+### Troubleshooting / Running a Local Proxy
+
+If you see errors like "Failed to fetch" or CORS preflight failures in the browser console, you can run a small local proxy that forwards requests to the Cobalt API and adds permissive CORS headers for development.
+
+1. Install dependencies and start the proxy:
+
+```bash
+cd server
+npm install
+npm start
+```
+
+2. In `script.js` set `PROXY_URL` to `http://localhost:3000/proxy` and reload the page.
+
+Notes:
+- This proxy is for local development only. Do not deploy it publicly without adding authentication and rate-limiting.
+- Alternatively, deploy a serverless proxy (Cloudflare Worker, Netlify function) that forwards requests to `https://api.cobalt.tools/api/json` and sets appropriate CORS headers.
+
 ## ⚠️ Important Notes
 
 - **Copyright**: Users are responsible for ensuring they have the right to download and use video content
