@@ -94,6 +94,44 @@ Notes:
 - This proxy is for local development only. Do not deploy it publicly without adding authentication and rate-limiting.
 - Alternatively, deploy a serverless proxy (Cloudflare Worker, Netlify function) that forwards requests to `https://api.cobalt.tools/api/json` and sets appropriate CORS headers.
 
+### Deploy a small Cloudflare Worker proxy (recommended)
+
+If you want a simple, hosted proxy so your GitHub Pages site can call the API without CORS issues, deploy the included Cloudflare Worker in `serverless/cf-proxy-worker.js`.
+
+1. Install Wrangler (Cloudflare's CLI) and login:
+
+```bash
+npm install -g wrangler
+wrangler login
+```
+
+2. Create a Worker project and copy `serverless/cf-proxy-worker.js` into it, or deploy directly with Wrangler:
+
+```bash
+# from repo root
+wrangler publish serverless/cf-proxy-worker.js --name yt-download-proxy
+```
+
+3. Update `script.js` to use your worker URL (for example `https://yt-download-proxy.your-subdomain.workers.dev`) as `PROXY_URL`.
+
+Security note: the Worker simply forwards requests and sets CORS headers. Protect it with rate limits or restrict origins if you plan to use it publicly.
+
+### Automated deployment via GitHub Actions
+
+If you'd like the Cloudflare Worker deployed automatically when you push to `main`, add the following repository secrets in GitHub:
+
+- `CF_API_TOKEN` — a Cloudflare API token with "Account" > "Workers Scripts" permission.
+- `CF_WORKER_NAME` — the desired worker name (for example `yt-download-proxy`).
+
+Once those are set, the workflow `.github/workflows/deploy-cloudflare-worker.yml` will publish `serverless/cf-proxy-worker.js` to Cloudflare on each push to `main`.
+
+After the worker is published, set `PROXY_URL` in `yt_download/script.js` to your worker URL, e.g.:
+
+```javascript
+const PROXY_URL = 'https://yt-download-proxy.your-subdomain.workers.dev/proxy';
+```
+
+Note: the worker script already handles CORS and forwards POST bodies to `https://api.cobalt.tools/api/json`.
 ## ⚠️ Important Notes
 
 - **Copyright**: Users are responsible for ensuring they have the right to download and use video content

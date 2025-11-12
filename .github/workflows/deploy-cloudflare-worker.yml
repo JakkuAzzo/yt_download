@@ -1,0 +1,23 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  publish-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish Cloudflare Worker
+        uses: cloudflare/wrangler-action@v1
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          command: publish serverless/cf-proxy-worker.js --name ${{ secrets.CF_WORKER_NAME }}
+
+      - name: Show worker URL
+        run: |
+          echo "Worker published. If you provided CF_WORKER_NAME, the worker is available at https://${{ secrets.CF_WORKER_NAME }}.workers.dev"
